@@ -9,7 +9,7 @@ namespace COM3D2.HighHeel;
 [BepInPlugin(PluginGuid, PluginName, PluginVersion)]
 public class Plugin : BaseUnityPlugin
 {
-    public const string PluginGuid = "com.habeebweeb.com3d2.highheel";
+    public const string PluginGuid = "com.Kotone4869.com3d2.highheel";
     public const string PluginName = "COM3D2.HighHeel";
     public const string PluginVersion = "1.0.0";
     public const string PluginString = PluginName + " " + PluginVersion;
@@ -55,8 +55,7 @@ public class Plugin : BaseUnityPlugin
 
         mainWindow.ImportEvent += (_, args) =>
         {
-            ImportConfiguration(ref EditModeConfig, args.Text);
-            mainWindow.UpdateEditModeValues();
+            ImportConfigsAndUpdate(args.Text);
         };
 
         SceneManager.sceneLoaded += (_, _) =>
@@ -64,8 +63,7 @@ public class Plugin : BaseUnityPlugin
 
         ShoeDatabase = LoadShoeDatabase();
 
-        ImportConfiguration(ref EditModeConfig, string.Empty);
-        mainWindow.UpdateEditModeValues();
+        ImportConfigsAndUpdate(string.Empty);
     }
 
     public static bool IsDance { get; private set; }
@@ -75,6 +73,12 @@ public class Plugin : BaseUnityPlugin
     public Dictionary<string, Core.ShoeConfig> ShoeDatabase { get; private set; }
 
     public bool EditMode { get; set; }
+
+    public void ImportConfigsAndUpdate(string configName)
+    {
+        ImportConfiguration(ref EditModeConfig, configName);
+        mainWindow.UpdateEditModeValues();
+    }
 
     private static Dictionary<string, Core.ShoeConfig> LoadShoeDatabase()
     {

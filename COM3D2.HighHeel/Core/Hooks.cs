@@ -6,7 +6,7 @@ namespace COM3D2.HighHeel.Core;
 #pragma warning disable SA1313 // Harmony parameter names break this rule
 public static class Hooks
 {
-    private static readonly float[] ToeX = [15f, 0f, -5f, 0f, -5f, 0f];
+    private static readonly float[] ToeX = { 0f, 0f, 0f, 0f, 0f, 0f };
 
     private static readonly Dictionary<TBody, MaidTransforms> MaidTransforms = [];
     private static readonly Dictionary<TBody, string> ShoeConfigs = [];
@@ -48,7 +48,8 @@ public static class Hooks
         if ((configNameIndex = name.IndexOf("hhmod_", StringComparison.Ordinal)) < 0)
             return;
 
-        var configName = name.Substring(configNameIndex);
+        //var configName = name.Substring(configNameIndex);
+        var configName = name.Substring(configNameIndex, 9);
 
         if (!Plugin.Instance.ShoeDatabase.ContainsKey(configName))
         {
@@ -95,21 +96,41 @@ public static class Hooks
                 return;
         }
 
-        var (body, footL, toesL, _, _, _, footR, toesR, _, _, _) = transforms;
-        var (offset, footLAngle, footLMax, toeLAngle, toeL0Angle, toeL01Angle, toeL1Angle, toeL11Angle, toeL2Angle,
-            toeL21Angle, footRAngle, footRMax, toeRAngle, toeR0Angle, toeR01Angle, toeR1Angle, toeR11Angle, toeR2Angle,
-            toeR21Angle) = config;
+        var (body, footL, toesL, toeL0, toeL1, toeL2, footR, toesR, toeR0, toeR1, toeR2) = transforms;
+        var (offset,
+            footLAngle, footLMax, toeLAngle,
+            toeL0Angle, toeL01Angle, toeL1Angle, toeL11Angle, toeL2Angle, toeL21Angle,
+            toeL0AngleX, toeL01AngleX, toeL1AngleX, toeL11AngleX, toeL2AngleX, toeL21AngleX,
+            toeL0AngleY, toeL01AngleY, toeL1AngleY, toeL11AngleY, toeL2AngleY, toeL21AngleY,
+            toeL0AngleZ, toeL01AngleZ, toeL1AngleZ, toeL11AngleZ, toeL2AngleZ, toeL21AngleZ,
+            footRAngle, footRMax, toeRAngle,
+            toeR0Angle, toeR01Angle, toeR1Angle, toeR11Angle, toeR2Angle, toeR21Angle,
+            toeR0AngleX, toeR01AngleX, toeR1AngleX, toeR11AngleX, toeR2AngleX, toeR21AngleX,
+            toeR0AngleY, toeR01AngleY, toeR1AngleY, toeR11AngleY, toeR2AngleY, toeR21AngleY,
+            toeR0AngleZ, toeR01AngleZ, toeR1AngleZ, toeR11AngleZ, toeR2AngleZ, toeR21AngleZ) = config;
 
         body.Translate(Vector3.up * offset, Space.World);
 
         RotateFoot(footL, footLAngle, footLMax);
         RotateFoot(footR, footRAngle, footRMax);
 
-        RotateToesIndividual(
-            toesL, toeLAngle, [toeL0Angle, toeL01Angle, toeL1Angle, toeL11Angle, toeL2Angle, toeL21Angle], true);
+        var individualAnglesToeL = new List<IndividualAngles>();
+        individualAnglesToeL.Add(new IndividualAngles(toeL0AngleX, toeL0AngleY, toeL0AngleZ, "toeL0"));
+        individualAnglesToeL.Add(new IndividualAngles(toeL01AngleX, toeL01AngleY, toeL01AngleZ, "toeL01"));
+        individualAnglesToeL.Add(new IndividualAngles(toeL1AngleX, toeL1AngleY, toeL1AngleZ, "toeL1"));
+        individualAnglesToeL.Add(new IndividualAngles(toeL11AngleX, toeL11AngleY, toeL11AngleZ, "toeL11"));
+        individualAnglesToeL.Add(new IndividualAngles(toeL2AngleX, toeL2AngleY, toeL2AngleZ, "toeL2"));
+        individualAnglesToeL.Add(new IndividualAngles(toeL21AngleX, toeL21AngleY, toeL21AngleZ, "toeL21"));
+        RotateToesIndividual(toesL, toeLAngle, individualAnglesToeL, true);
 
-        RotateToesIndividual(
-            toesR, toeRAngle, [toeR0Angle, toeR01Angle, toeR1Angle, toeR11Angle, toeR2Angle, toeR21Angle], false);
+        var individualAnglesToeR = new List<IndividualAngles>();
+        individualAnglesToeR.Add(new IndividualAngles(toeR0AngleX, toeR0AngleY, toeR0AngleZ, "toeR0"));
+        individualAnglesToeR.Add(new IndividualAngles(toeR01AngleX, toeR01AngleY, toeR01AngleZ, "toeR01"));
+        individualAnglesToeR.Add(new IndividualAngles(toeR1AngleX, toeR1AngleY, toeR1AngleZ, "toeR1"));
+        individualAnglesToeR.Add(new IndividualAngles(toeR11AngleX, toeR11AngleY, toeR11AngleZ, "toeR11"));
+        individualAnglesToeR.Add(new IndividualAngles(toeR2AngleX, toeR2AngleY, toeR2AngleZ, "toeR2"));
+        individualAnglesToeR.Add(new IndividualAngles(toeR21AngleX, toeR21AngleY, toeR21AngleZ, "toeL21"));
+        RotateToesIndividual(toesR, toeRAngle, individualAnglesToeR, false);
 
         __instance.SkinMeshUpdate();
 
@@ -128,7 +149,7 @@ public static class Hooks
             foot.localRotation = Quaternion.Euler(rotation);
         }
 
-        static void RotateToesIndividual(IList<Transform> toes, float angle, List<float> individualAngle, bool left)
+        static void RotateToes(IList<Transform> toes, float angle, bool left)
         {
             var inverse = left ? 1f : -1f;
 
@@ -146,7 +167,22 @@ public static class Hooks
                     };
                 }
 
-                toes[i].localRotation = Quaternion.Euler(ToeX[i] * inverse, 0f, angle + offset + individualAngle[i]);
+                toes[i].localRotation = Quaternion.Euler(ToeX[i] * inverse, 0f, angle + offset);
+            }
+        }
+
+        static void RotateToesIndividual(IList<Transform> toes, float correctionAngle, List<IndividualAngles> individualAngles, bool left)
+        {
+            var inverse = left ? 1f : -1f;
+
+            for (var i = 0; i < 6; i++)
+            {
+                var thisToeAngles = individualAngles[i];
+                var rotation = toes[i].localRotation.eulerAngles;
+                rotation.x = thisToeAngles.x;
+                rotation.y = thisToeAngles.y;
+                rotation.z = thisToeAngles.z;
+                toes[i].localRotation = Quaternion.Euler(rotation);
             }
         }
     }
@@ -192,11 +228,85 @@ public static class Hooks
     [HarmonyPatch(typeof(TBody), "OnDestroy")]
     public static void OnMaidBodyDestroy(TBody __instance)
     {
-        if (MaidTransforms.ContainsKey(__instance))
-            MaidTransforms.Remove(__instance);
-
-        if (ShoeConfigs.ContainsKey(__instance))
-            ShoeConfigs.Remove(__instance);
+        if (MaidTransforms.ContainsKey(__instance)) MaidTransforms.Remove(__instance);
+        if (ShoeConfigs.ContainsKey(__instance)) ShoeConfigs.Remove(__instance);
     }
+}
+
+public class IndividualAngles
+{
+    public IndividualAngles(float xJson, float yJson, float zJson, string boneName)
+    {
+        switch (boneName)
+        {
+            case "toeL0":
+                x = xJson + 359.783478f;
+                y = yJson + 0.489697933f;
+                z = zJson + 280.0905f;
+                break;
+            case "toeL01":
+                x = xJson + -0.000153921559f;
+                y = yJson + 0.0000699606f;
+                z = zJson + 9.406873f;
+                break;
+            case "toeL1":
+                x = xJson + 354.6391f;
+                y = yJson + 2.3375845f;
+                z = zJson + 283.451019f;
+                break;
+            case "toeL11":
+                x = xJson + -0.00006798167f;
+                y = yJson + -0.00009544926f;
+                z = zJson + 0.0000599776577f;
+                break;
+            case "toeL2":
+                x = xJson + 3.581009f;
+                y = yJson + 358.882568f;
+                z = zJson + 286.8532f;
+                break;
+            case "toeL21":
+                x = xJson + 0.0000686013955f;
+                y = yJson + -0.0000236358665f;
+                z = zJson + 3.88611221f;
+                break;
+
+            case "toeR0":
+                x = xJson + 0.216394484f;
+                y = yJson + 359.510223f;
+                z = zJson + 280.0905f;
+                break;
+            case "toeR01":
+                x = xJson + 0.0000808577752f;
+                y = yJson + 0.0000769748149f;
+                z = zJson + 9.406906f;
+                break;
+            case "toeR1":
+                x = xJson + 5.36096144f;
+                y = yJson + 357.662262f;
+                z = zJson + 283.45108f;
+                break;
+            case "toeR11":
+                x = xJson + -0.000161576667f;
+                y = yJson + 0.00000360192917f;
+                z = zJson + -0.0000507995355f;
+                break;
+            case "toeR2":
+                x = xJson + 356.4189f;
+                y = yJson + 1.11770535f;
+                z = zJson + 286.8531f;
+                break;
+            case "toeR21":
+                x = xJson + 0.00007788669f;
+                y = yJson + 0.0000164253543f;
+                z = zJson + 3.886178f;
+                break;
+        }
+    }
+
+    public float x { get; set; }
+
+    public float y { get; set; }
+
+    public float z { get; set; }
 }
 #pragma warning restore
